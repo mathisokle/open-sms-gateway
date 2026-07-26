@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Settings — SMS Gateway Admin{% endblock %}
+{% block content %}
+<script src="/static/composer.js?v={{ APP_VERSION }}" defer></script>
+<h1>Settings</h1>
+
+<div class="settings-grid">
+  <section class="card">
+    <div class="card-head">
+      <span class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></span>
+      <h2>Webhook for inbound SMS</h2>
+    </div>
+    <p class="muted">Inbound SMS are delivered as a signed POST to this URL (header X-Gateway-Signature: sha256=HMAC-SHA256(secret, body)). Leave empty for polling-only.</p>
+    <form method="post" action="/admin/settings/webhook" class="filters">
+      <input type="url" name="webhook_url" value="{{ webhook_url or '' }}" placeholder="https://…" size="40">
+      <button type="submit">Save</button>
+    </form>
+    {% if webhook_secret %}
+    <h3>Signature secret</h3>
+    <p class="token-plain">{{ webhook_secret }}</p>
+    <form method="post" action="/admin/settings/webhook/rotate-secret" class="inline">
+      <button type="submit">Rotate secret</button>
+    </form>
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <span class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></span>
+      <h2>Send test SMS</h2>
+    </div>
+    <form method="post" action="/admin/test-sms" class="filters">
+      <input type="tel" name="to" placeholder="Recipient (+41…)" pattern="\+[1-9][0-9]{6,14}" required>
+      <input type="text" name="body" placeholder="Text (optional)" data-sms-composer="test-sms-count" maxlength="1600">
+      <button type="submit">Send</button>
+    </form>
+    <p class="sms-count" id="test-sms-count" aria-live="polite"></p>
+    <p class="muted">Leaving the text empty sends a default message. <a href="/admin/docs/sms-format" class="muted-link">Message format guide →</a></p>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <span class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>
+      <h2>Gateway</h2>
+    </div>
+    <form method="post" action="/admin/settings/own-number" class="filters">
+      <input type="tel" name="own_number" value="{{ own_number or '' }}" placeholder="Gateway number (SIM, +41…)">
+      <button type="submit">Save</button>
+    </form>
+    <p class="muted">The SIM's own number — shown on the dashboard and in chats. Display only.</p>
+    <table>
+      <tr><th>Version</th><td>v{{ info.version }}</td></tr>
+      <tr><th>Send throttle</th><td>{{ info.throttle }}/min</td></tr>
+      <tr><th>API rate limit</th><td>{% if info.rate_limit %}{{ info.rate_limit }}/min{% else %}off{% endif %}</td></tr>
+      <tr><th>Timezone</th><td>{{ info.tz }}</td></tr>
+      <tr><th>Database size</th><td>{% if info.db_size_mb is not none %}{{ info.db_size_mb }} MB{% else %}—{% endif %}</td></tr>
+      <tr><th>Messages stored</th><td>{{ info.message_count }}</td></tr>
+    </table>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <span class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span>
+      <h2>Data cleanup</h2>
+    </div>
+    <p class="muted">Delete messages (and their webhook logs) older than:</p>
+    <form method="post" action="/admin/purge-messages" class="filters" hx-confirm="Really delete old messages permanently?">
+      <select name="days">
+        <option value="30">30 days</option>
+        <option value="90" selected>90 days</option>
+        <option value="365">365 days</option>
+      </select>
+      <button type="submit">Purge</button>
+    </form>
+    <p><a href="/admin/backup" class="muted-link">Download database backup</a></p>
+  </section>
+
+  <section class="card danger-card">
+    <div class="card-head">
+      <span class="card-icon danger-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+      <h2>Danger zone</h2>
+    </div>
+    <p class="muted">Containers restart automatically (restart: unless-stopped). The worker picks up the request within ~5 seconds.</p>
+    <div class="filters">
+      <form method="post" action="/admin/restart-worker" hx-confirm="Really restart?">
+        <button type="submit" class="danger-outline">Restart worker</button>
+      </form>
+      <form method="post" action="/admin/restart-api" hx-confirm="Really restart?">
+        <button type="submit" class="danger-outline">Restart API</button>
+      </form>
+    </div>
+  </section>
+</div>
+{% endblock %}

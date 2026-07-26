@@ -1,0 +1,151 @@
+<p class="stat-section">Today</p>
+<div class="stats-grid">
+  <div class="card stat">
+    <span class="stat-value" data-stat="queue_depth">{{ queue_depth }}</span>
+    <span class="stat-label">Queue</span>
+  </div>
+  <div class="card stat">
+    <span class="stat-value" data-stat="sent_today">{{ sent_today }}</span>
+    <span class="stat-label">Sent today</span>
+  </div>
+  <div class="card stat">
+    <span class="stat-value" data-stat="delivered_today">{{ delivered_today }}</span>
+    <span class="stat-label">Delivered today</span>
+  </div>
+  <div class="card stat">
+    <span class="stat-value" data-stat="received_today">{{ received_today }}</span>
+    <span class="stat-label">Received today</span>
+  </div>
+  <div class="card stat {% if failed_today %}stat-bad{% endif %}">
+    <span class="stat-value" data-stat="failed_today">{{ failed_today }}</span>
+    <span class="stat-label">Failed today</span>
+  </div>
+</div>
+
+<p class="stat-section">All time</p>
+<div class="stats-grid">
+  <div class="card stat">
+    <span class="stat-value" data-stat="total_messages">{{ total_messages }}</span>
+    <span class="stat-label">Total messages</span>
+  </div>
+  <div class="card stat">
+    <span class="stat-value" data-stat="sent_total">{{ sent_total }}</span>
+    <span class="stat-label">Sent (total)</span>
+  </div>
+  <div class="card stat">
+    <span class="stat-value" data-stat="received_total">{{ received_total }}</span>
+    <span class="stat-label">Received (total)</span>
+  </div>
+  <div class="card stat {% if failed_total %}stat-bad{% endif %}">
+    <span class="stat-value" data-stat="failed_total">{{ failed_total }}</span>
+    <span class="stat-label">Failed (total)</span>
+  </div>
+  <div class="card stat">
+    <span class="stat-value" data-stat="success_rate">{% if success_rate is not none %}{{ success_rate }}%{% else %}—{% endif %}</span>
+    <span class="stat-label">Success rate</span>
+  </div>
+  <div class="card stat">
+    <span class="stat-value" data-stat="webhook_rate">{% if webhook_rate is not none %}{{ webhook_rate }}%{% else %}—{% endif %}</span>
+    <span class="stat-label">Webhook success</span>
+  </div>
+  <div class="card stat">
+    <span class="stat-value" data-stat="active_tokens">{{ active_tokens }}</span>
+    <span class="stat-label">Active tokens</span>
+  </div>
+</div>
+
+<div class="charts-grid">
+  <div class="card">
+    <h2>Modem</h2>
+    <table>
+      <tr><th>Connected</th>
+          <td>{% if status.get("modem_connected") == "1" %}<span class="badge badge-sent badge-pulse">yes</span>{% else %}<span class="badge badge-failed badge-pulse">no</span>{% endif %}</td></tr>
+      <tr><th>Signal</th>
+          <td>
+            {% set signal = status.get("signal_percent") %}
+            {% if signal %}
+            <div class="meter" role="img" aria-label="Signal {{ signal }}%"><span style="width: {{ signal }}%"></span></div>
+            <span class="muted">{{ signal }}%</span>
+            {% else %}<span class="muted">—</span>{% endif %}
+          </td></tr>
+      <tr><th>Operator</th><td>{{ status.get("operator") or "—" }}</td></tr>
+      <tr><th>Gateway number</th><td>{% if own_number %}<code>{{ own_number }}</code>{% else %}<a href="/admin/settings" class="muted-link">add number in settings →</a>{% endif %}</td></tr>
+      <tr><th>Registration</th><td>{{ status.get("registration") or "—" }}</td></tr>
+      <tr><th>Worker last seen</th><td>{{ status.get("worker_heartbeat") | localdt }}</td></tr>
+      <tr><th>Webhook</th>
+          <td>{% if webhook_configured %}<span class="badge badge-sent">configured</span>{% else %}<span class="badge">not configured</span>{% endif %}</td></tr>
+    </table>
+  </div>
+
+  <div class="card chart-card donut-card">
+    <h2>Outbound status</h2>
+    <div class="donut-wrap">
+      <svg viewBox="0 0 100 100" class="donut" role="img" aria-label="Outbound status">
+        <circle class="donut-ring" cx="50" cy="50" r="40"/>
+        {% for seg in donut.segments %}
+        <circle class="donut-seg seg-{{ seg.status }}" cx="50" cy="50" r="40"
+                stroke-dasharray="{{ seg.dash }} {{ donut.circumference }}"
+                stroke-dashoffset="{{ seg.offset }}">
+          <title>{{ seg.status }}: {{ seg.count }}</title>
+        </circle>
+        {% endfor %}
+      </svg>
+      <div class="donut-center">
+        <span class="donut-total">{{ donut.total }}</span>
+        <span class="muted">outbound</span>
+      </div>
+      <div class="legend legend-col">
+        {% for seg in donut.segments %}
+        <span><i class="dot seg-dot-{{ seg.status }}"></i>{{ seg.status }} · {{ seg.count }}</span>
+        {% else %}
+        <span class="muted">No data yet.</span>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="card chart-card">
+    <h2>Activity — last 24 hours</h2>
+    <svg viewBox="0 0 {{ chart.width }} {{ chart.height }}" preserveAspectRatio="none" role="img"
+         aria-label="Activity — last 24 hours">
+      <line x1="0" y1="{{ chart.plot }}" x2="{{ chart.width }}" y2="{{ chart.plot }}" class="chart-axis"/>
+      {% for bar in chart.bars %}
+      <g>
+        <title>{{ bar.label }}:00 — sent: {{ bar.out }}, received: {{ bar.inb }}</title>
+        {% if bar.h_out %}<rect x="{{ bar.x }}" y="{{ bar.y_out }}" width="{{ bar.width }}" height="{{ bar.h_out }}" class="bar-out" rx="1.5" style="animation-delay: {{ loop.index0 * 20 }}ms"/>{% endif %}
+        {% if bar.h_inb %}<rect x="{{ bar.x }}" y="{{ bar.y_inb }}" width="{{ bar.width }}" height="{{ bar.h_inb }}" class="bar-in" rx="1.5" style="animation-delay: {{ loop.index0 * 20 }}ms"/>{% endif %}
+        {% if not bar.h_out and not bar.h_inb %}<rect x="{{ bar.x }}" y="{{ chart.plot - 1.5 }}" width="{{ bar.width }}" height="1.5" class="bar-empty"/>{% endif %}
+        {% if bar.show_label %}<text x="{{ bar.x + bar.width / 2 }}" y="{{ chart.height - 4 }}" class="chart-label">{{ bar.label }}</text>{% endif %}
+      </g>
+      {% endfor %}
+    </svg>
+    <div class="legend">
+      <span><i class="dot dot-out"></i>sent</span>
+      <span><i class="dot dot-in"></i>received</span>
+      <span class="muted">max {{ chart.peak }}/h</span>
+    </div>
+  </div>
+
+  <div class="card chart-card">
+    <h2>Trend — last 7 days</h2>
+    <svg viewBox="0 0 {{ trend.width }} {{ trend.height }}" preserveAspectRatio="none" role="img"
+         aria-label="Trend — last 7 days" class="trend-svg">
+      <line x1="0" y1="{{ trend.plot }}" x2="{{ trend.width }}" y2="{{ trend.plot }}" class="chart-axis"/>
+      <polyline class="trend-line trend-out" pathLength="1" points="{{ trend.line_out }}"/>
+      <polyline class="trend-line trend-in" pathLength="1" points="{{ trend.line_in }}"/>
+      {% for p in trend.points %}
+      <g>
+        <title>{{ p.label }} — sent: {{ p.out }}, received: {{ p.inb }}</title>
+        <circle class="trend-dot trend-dot-out" cx="{{ p.x }}" cy="{{ p.y_out }}" r="3"/>
+        <circle class="trend-dot trend-dot-in" cx="{{ p.x }}" cy="{{ p.y_in }}" r="3"/>
+        <text x="{{ p.x }}" y="{{ trend.height - 4 }}" class="chart-label">{{ p.label }}</text>
+      </g>
+      {% endfor %}
+    </svg>
+    <div class="legend">
+      <span><i class="dot dot-out"></i>sent</span>
+      <span><i class="dot dot-in"></i>received</span>
+      <span class="muted">max {{ trend.peak }}/d</span>
+    </div>
+  </div>
+</div>

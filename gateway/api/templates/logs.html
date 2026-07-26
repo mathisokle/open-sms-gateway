@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Event Log — SMS Gateway Admin{% endblock %}
+{% block content %}
+<h1>Event Log</h1>
+
+<section class="card data-card">
+  <form method="get" action="/admin/logs" class="toolbar">
+    <select name="level">
+      <option value="">all levels</option>
+      {% for lvl in ["info", "warning", "error"] %}
+      <option value="{{ lvl }}" {% if filters.level == lvl %}selected{% endif %}>{{ lvl }}</option>
+      {% endfor %}
+    </select>
+    <select name="source">
+      <option value="">all sources</option>
+      {% for src in ["worker", "webhook", "admin"] %}
+      <option value="{{ src }}" {% if filters.source == src %}selected{% endif %}>{{ src }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit">Filter</button>
+  </form>
+  <div id="logs" hx-get="/admin/partials/logs?level={{ filters.level | urlencode }}&amp;source={{ filters.source | urlencode }}"
+       hx-trigger="every 5s" hx-swap="innerHTML">
+    {% include "_logs.html" %}
+  </div>
+</section>
+{% endblock %}

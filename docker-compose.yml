@@ -1,0 +1,48 @@
+services:
+  api:
+    build: .
+    command: uvicorn gateway.api.main:app --host 0.0.0.0 --port 8080
+    env_file: .env
+    environment:
+      - MODEM_FAKE=${MODEM_FAKE:-0}
+    ports:
+      - "${API_PORT:-8080}:8080"
+    volumes:
+      - gateway-data:/data
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/healthz', timeout=5)"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+
+  worker:
+    build: .
+    command: python3 -m gateway.worker.main
+    env_file: .env
+    environment:
+      - MODEM_FAKE=${MODEM_FAKE:-0}
+    volumes:
+      - gateway-data:/data
+    # With MODEM_FAKE=1 (development without hardware), comment out the devices block:
+    devices:
+      - "${HOST_MODEM_DEVICE}:/dev/modem"
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+  # Optional: reverse proxy with automatic TLS, if the gateway should be reachable from the internet.
+  # Point a domain at the Pi's IP and create a Caddyfile first.
+  # caddy:
+  #   image: caddy:2-alpine
+  #   ports: ["80:80", "443:443"]
+  #   volumes:
+  #     - ./Caddyfile:/etc/caddy/Caddyfile:ro
+  #     - caddy-data:/data
+  #   restart: unless-stopped
+
+volumes:
+  gateway-data:
+  # caddy-data:

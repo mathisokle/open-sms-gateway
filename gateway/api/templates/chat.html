@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}{{ msisdn }} — SMS Gateway Admin{% endblock %}
+{% block content %}
+<script src="/static/composer.js?v={{ APP_VERSION }}" defer></script>
+<div class="chat-header">
+  <a href="/admin/chats" class="chat-back" aria-label="Chats">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+  </a>
+  <span class="chat-avatar">{{ msisdn[-2:] }}</span>
+  <div class="chat-header-main">
+    <code>{{ msisdn }}</code>
+    <span class="muted">{{ messages | length }} messages{% if own_number %} · via {{ own_number }}{% endif %}</span>
+  </div>
+</div>
+
+<section class="card chat-card">
+  <div class="chat-scroll" id="chat-scroll">
+    <div id="chat" hx-get="/admin/partials/chat/{{ msisdn | urlencode }}" hx-trigger="every 5s" hx-swap="innerHTML">
+      {% include "_chat.html" %}
+    </div>
+  </div>
+  <form method="post" action="/admin/chats/{{ msisdn | urlencode }}/send" class="chat-reply"
+        hx-post="/admin/chats/{{ msisdn | urlencode }}/send" hx-target="#chat" hx-swap="innerHTML"
+        hx-on::after-request="if (event.detail.successful) this.reset()">
+    <input type="text" name="body" placeholder="Write a message…" autocomplete="off" required autofocus
+           maxlength="1600" data-sms-composer="chat-sms-count">
+    <button type="submit">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      Send
+    </button>
+  </form>
+  <p class="sms-count chat-count" id="chat-sms-count" aria-live="polite"></p>
+</section>
+
+<script>
+  (function () {
+    var scroll = function () {
+      var el = document.getElementById("chat-scroll");
+      if (el) { el.scrollTop = el.scrollHeight; }
+    };
+    scroll();
+    document.body.addEventListener("htmx:afterSwap", function (event) {
+      if (event.target && event.target.id === "chat") { scroll(); }
+    });
+  })();
+</script>
+{% endblock %}

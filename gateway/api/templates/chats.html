@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Chats — SMS Gateway Admin{% endblock %}
+{% block content %}
+<h1>Chats</h1>
+
+<section class="card data-card">
+  <div class="chat-list">
+    {% for chat in chats %}
+    <a class="chat-item" href="/admin/chats/{{ chat.msisdn | urlencode }}">
+      <span class="chat-avatar">{{ chat.msisdn[-2:] }}</span>
+      <span class="chat-item-main">
+        <span class="chat-item-top">
+          <code>{{ chat.msisdn }}</code>
+          <span class="muted">{{ chat.last.created_at | localdt }}</span>
+        </span>
+        <span class="chat-item-preview">
+          {% if chat.last.direction == "outbound" %}<span class="muted">↑</span>{% else %}<span class="muted">↓</span>{% endif %}
+          {{ chat.last.body[:70] }}{% if chat.last.body | length > 70 %}…{% endif %}
+        </span>
+      </span>
+      <span class="badge">{{ chat.count }}</span>
+    </a>
+    {% else %}
+    <p class="empty-state">No conversations yet.</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

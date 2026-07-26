@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% from "_doc_icons.html" import doc_icon %}
+{% block title %}Docs — SMS Gateway Admin{% endblock %}
+{% block content %}
+<h1>Documentation</h1>
+<p class="doc-intro">
+  The operator manual for this gateway: how every screen works, the message format your SMS
+  should follow, the REST API and webhook contracts, and a symptom-first runbook. It ships with
+  the application and works offline.
+</p>
+
+{% for section, pages in sections %}
+<p class="stat-section">{{ section }}</p>
+<div class="doc-grid">
+  {% for page in pages %}
+  <a class="card doc-card" href="/admin/docs/{{ page.slug }}">
+    <span class="card-icon">{{ doc_icon(page.icon) }}</span>
+    <span class="doc-card-body">
+      <span class="doc-card-title">{{ page.title }}</span>
+      <span class="doc-card-summary">{{ page.summary }}</span>
+    </span>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<section class="card">
+  <p class="empty-state">
+    The manual files could not be found. They live in <code>docs/manual/</code> and are copied
+    into the image by the Dockerfile.
+  </p>
+</section>
+{% endfor %}
+{% endblock %}

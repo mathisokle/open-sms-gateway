@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Message {{ message.id }} — SMS Gateway Admin{% endblock %}
+{% block content %}
+<h1>Message <span class="muted">{{ message.id }}</span></h1>
+
+<section class="card">
+  <table>
+    <tr><th>Direction</th><td>{{ message.direction }}</td></tr>
+    <tr><th>Number</th><td>{{ message.msisdn }}</td></tr>
+    <tr><th>Status</th><td><span class="badge badge-{{ message.status }}">{{ message.status }}</span></td></tr>
+    <tr><th>Segments</th><td>{{ message.segments }}</td></tr>
+    <tr><th>Error</th><td>{{ message.error or "—" }}</td></tr>
+    <tr><th>Created</th><td>{{ message.created_at | localdt }}</td></tr>
+    <tr><th>Sent</th><td>{{ message.sent_at | localdt }}</td></tr>
+    <tr><th>Delivered</th><td>{{ message.delivered_at | localdt }}</td></tr>
+    <tr><th>Received</th><td>{{ message.received_at | localdt }}</td></tr>
+  </table>
+</section>
+
+<section class="card">
+  <h2>Message text</h2>
+  <p>{{ message.body }}</p>
+</section>
+
+{% if deliveries %}
+<section class="card table-wrap">
+  <h2>Webhook deliveries</h2>
+  <table>
+    <tr><th>Attempt</th><th>Status</th><th>HTTP</th><th>Next retry</th><th>Delivered</th></tr>
+    {% for delivery in deliveries %}
+    <tr>
+      <td>{{ delivery.attempt }}</td>
+      <td><span class="badge badge-{{ delivery.status }}">{{ delivery.status }}</span></td>
+      <td>{{ delivery.response_code or "—" }}</td>
+      <td>{{ delivery.next_retry_at | localdt }}</td>
+      <td>{{ delivery.delivered_at | localdt }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</section>
+{% endif %}
+{% endblock %}

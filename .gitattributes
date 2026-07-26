@@ -1,0 +1,7 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Never line-ending-normalize binaries — that would corrupt them
+*.png binary
+*.woff2 binary
+*.db binary

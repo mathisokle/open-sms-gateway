@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Admin Users — SMS Gateway Admin{% endblock %}
+{% block content %}
+<h1>Admin Users</h1>
+
+<section class="card">
+  <div class="card-head">
+    <span class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></span>
+    <h2>Create user</h2>
+  </div>
+  <form method="post" action="/admin/users" class="filters">
+    <input type="text" name="username" placeholder="Username" autocomplete="off" required>
+    <input type="password" name="password" placeholder="Password (min. 8 characters)" autocomplete="new-password" minlength="8" required>
+    <button type="submit">Create</button>
+  </form>
+  <p class="muted">The .env admin always works as a fallback — you can never lock yourself out.</p>
+</section>
+
+<section class="card data-card">
+  <div class="table-wrap">
+  <table>
+    <tr><th>Username</th><th>Created</th><th>Change password</th><th></th></tr>
+    <tr>
+      <td><span class="user-name">{{ env_admin }}</span><span class="badge tag">.env</span></td>
+      <td>—</td>
+      <td class="muted">managed via .env</td>
+      <td></td>
+    </tr>
+    {% for user in users %}
+    <tr>
+      <td><span class="user-name">{{ user.username }}</span></td>
+      <td>{{ user.created_at | localdt }}</td>
+      <td>
+        <form method="post" action="/admin/users/{{ user.id }}/password" class="filters row-form">
+          <input type="password" name="password" placeholder="Password (min. 8 characters)" autocomplete="new-password" minlength="8" required>
+          <button type="submit">Change password</button>
+        </form>
+      </td>
+      <td>
+        <form method="post" action="/admin/users/{{ user.id }}/delete" class="inline" hx-confirm="Really delete this user?">
+          <button type="submit">Delete</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  </div>
+</section>
+{% endblock %}

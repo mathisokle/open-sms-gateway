@@ -1,0 +1,14 @@
+.env
+# also catch .env.prod, .env.local, .env.bak, .env.2026-01-15 … but keep the template
+.env.*
+!.env.example
+.venv/
+__pycache__/
+*.pyc
+*.db
+*.db-wal
+*.db-shm
+data/
+.pytest_cache/
+.ruff_cache/
+.DS_Store

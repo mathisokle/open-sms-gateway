@@ -1,0 +1,15 @@
+<div class="table-wrap">
+<table>
+  <tr><th>Time</th><th>Source</th><th>Level</th><th>Message</th></tr>
+  {% for event in events %}
+  <tr>
+    <td>{{ event.ts | localdt }}</td>
+    <td><code>{{ event.source }}</code></td>
+    <td><span class="badge level-{{ event.level }}">{{ event.level }}</span></td>
+    <td>{{ event.message }}</td>
+  </tr>
+  {% else %}
+  <tr><td colspan="4" class="empty-state">No events yet.</td></tr>
+  {% endfor %}
+</table>
+</div>

@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Token created — SMS Gateway Admin{% endblock %}
+{% block content %}
+<h1>Token created</h1>
+<section class="card">
+  <p class="error"><strong>This token is shown ONLY ONCE. Copy it now and hand it over securely — afterwards only the prefix is visible.</strong></p>
+  <p class="token-plain">{{ token }}</p>
+  <p><a href="/admin/tokens">Back to tokens</a></p>
+</section>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — SMS Gateway Admin{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Dashboard</h1>
+  <span class="live-badge"><span class="live-dot"></span>Live</span>
+</div>
+
+<div id="stats" hx-get="/admin/partials/stats" hx-trigger="every 10s" hx-swap="innerHTML">
+  {% include "_stats.html" %}
+</div>
+{% endblock %}

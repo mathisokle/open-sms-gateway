@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}{{ page.title }} — SMS Gateway Admin{% endblock %}
+{% block content %}
+<nav class="doc-breadcrumb"><a href="/admin/docs">Documentation</a> <span aria-hidden="true">/</span> {{ page.title }}</nav>
+<h1>{{ page.title }}</h1>
+{% if page.summary %}<p class="doc-intro">{{ page.summary }}</p>{% endif %}
+
+<div class="doc-layout">
+  {% if page.toc %}
+  <aside class="doc-toc card">
+    <h2>On this page</h2>
+    <ul>
+      {% for heading in page.toc %}
+      <li class="doc-toc-h{{ heading.level }}"><a href="#{{ heading.slug }}">{{ heading.text }}</a></li>
+      {% endfor %}
+    </ul>
+  </aside>
+  {% endif %}
+
+  <article class="card doc-body">
+    {{ page.html | safe }}
+  </article>
+</div>
+
+<nav class="doc-pager">
+  {% if previous_page %}
+  <a class="doc-pager-link" href="/admin/docs/{{ previous_page.slug }}">
+    <span class="muted">← Previous</span>
+    <span>{{ previous_page.title }}</span>
+  </a>
+  {% else %}<span></span>{% endif %}
+  {% if next_page %}
+  <a class="doc-pager-link doc-pager-next" href="/admin/docs/{{ next_page.slug }}">
+    <span class="muted">Next →</span>
+    <span>{{ next_page.title }}</span>
+  </a>
+  {% endif %}
+</nav>
+{% endblock %}

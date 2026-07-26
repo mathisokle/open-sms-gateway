@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Webhook Log — SMS Gateway Admin{% endblock %}
+{% block content %}
+<h1>Webhook Log</h1>
+
+<section class="card data-card">
+  <div class="table-wrap">
+  <table>
+    <tr><th>Created</th><th>Message</th><th>Attempt</th><th>Status</th><th>HTTP</th><th>Next retry</th><th>Delivered</th><th></th></tr>
+    {% for delivery in deliveries %}
+    <tr>
+      <td class="muted">{{ delivery.created_at | localdt }}</td>
+      <td><a href="/admin/messages/{{ delivery.message_id }}"><code>{{ delivery.message_id[:12] }}…</code></a></td>
+      <td>{{ delivery.attempt }}</td>
+      <td><span class="badge badge-{{ delivery.status }}">{{ delivery.status }}</span></td>
+      <td>{{ delivery.response_code or "—" }}</td>
+      <td class="muted">{{ delivery.next_retry_at | localdt }}</td>
+      <td class="muted">{{ delivery.delivered_at | localdt }}</td>
+      <td class="actions">
+        {% if delivery.status == "failed" %}
+        <form method="post" action="/admin/webhooks/{{ delivery.id }}/retry" class="inline">
+          <button type="submit">Retry delivery</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="8" class="empty-state">No delivery attempts yet.</td></tr>
+    {% endfor %}
+  </table>
+  </div>
+</section>
+{% endblock %}

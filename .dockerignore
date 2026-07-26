@@ -1,0 +1,19 @@
+# Keep the build context small and the image clean — the Pi 3 builds this itself.
+__pycache__/
+*.py[cod]
+.venv/
+.git/
+.github/
+.pytest_cache/
+.ruff_cache/
+tests/
+# docs/ stays in the context: the Dockerfile copies docs/manual/ into the image for the
+# admin panel's Docs section. Only that subdirectory is COPYed; the rest never lands.
+# Screenshots and hardware photos are README material — no reason to ship them at all.
+docs/screenshots/
+docs/hardware/
+.env
+*.db
+*.db-wal
+*.db-shm
+data/

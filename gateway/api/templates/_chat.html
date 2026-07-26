@@ -1,0 +1,24 @@
+{% set ns = namespace(day="") %}
+{% for message in messages %}
+{% set day = (message.created_at | localdt)[:10] %}
+{% if day != ns.day %}
+{% set ns.day = day %}
+<div class="day-sep"><span>{{ day }}</span></div>
+{% endif %}
+<div class="bubble-row {% if message.direction == 'outbound' %}bubble-row-out{% endif %}">
+  <div class="bubble {% if message.direction == 'outbound' %}bubble-out{% else %}bubble-in{% endif %}">
+    <p>{{ message.body }}</p>
+    <span class="bubble-meta">
+      {{ (message.created_at | localdt)[11:] }}
+      {% if message.direction == "outbound" %}
+        {% if message.status == "delivered" %}<span class="tick tick-ok" title="delivered">✓✓</span>
+        {% elif message.status == "sent" %}<span class="tick" title="sent">✓</span>
+        {% elif message.status == "failed" %}<span class="tick tick-bad" title="failed">✗</span>
+        {% else %}<span class="tick" title="queued">…</span>{% endif %}
+      {% endif %}
+    </span>
+  </div>
+</div>
+{% else %}
+<p class="empty-state">No messages in this conversation yet.</p>
+{% endfor %}
